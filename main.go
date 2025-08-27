@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"time"
 )
 
 var spaceApiData = &SpaceAPIv15{
@@ -50,6 +51,9 @@ type LabStatusAPIResponse struct {
 	LastUpdatedUnix int64  `json:"last_updated"`
 }
 
+var previousStatus = "unknown"
+var lastChangedUnix = int64(0)
+
 func Pointer[T any](d T) *T {
 	return &d
 }
@@ -87,18 +91,18 @@ func fetchLabState() (*bool, *int64, error) {
 	req.Header.Set("Content-Type", "application/json")
 
 	//actually send the request
-	resp, err := client.Do(req)
-	if err != nil {
-		fmt.Printf("error while sending request to state api: %v\n", err)
-		return nil, nil, err
+	resp, requestErr := client.Do(req)
+	if requestErr != nil {
+		fmt.Printf("error while sending request to state api: %v\n", requestErr)
+		return nil, nil, requestErr
 	}
 
 	//close the request and read the body
 	defer resp.Body.Close()
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		fmt.Printf("error while reading response body from state api: %v\n", err)
-		return nil, nil, err
+	body, readErr := io.ReadAll(resp.Body)
+	if readErr != nil {
+		fmt.Printf("error while reading response body from state api: %v\n", readErr)
+		return nil, nil, readErr
 	}
 
 	/*var r LabStatusAPIResponse
@@ -116,12 +120,23 @@ func fetchLabState() (*bool, *int64, error) {
 	}
 
 	var r LabStatus
-	json.Unmarshal(body, &r)
+	jsonErr := json.Unmarshal(body, &r)
+	if jsonErr != nil {
+		return nil, nil, jsonErr
+	}
 
 	if r.Status == "open" {
-		return Pointer(true), nil, nil
+		if previousStatus != "open" {
+			previousStatus = r.Status
+			lastChangedUnix = time.Now().Unix()
+		}
+		return Pointer(true), &lastChangedUnix, nil
 	} else if r.Status == "closed" {
-		return Pointer(false), nil, nil
+		if previousStatus != "closed" {
+			previousStatus = r.Status
+			lastChangedUnix = time.Now().Unix()
+		}
+		return Pointer(false), &lastChangedUnix, nil
 	} else {
 		return nil, nil, fmt.Errorf("unknown state: %s", r.Status)
 	}
