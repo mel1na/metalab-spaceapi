@@ -61,8 +61,8 @@ func Pointer[T any](d T) *T {
 func handleSpaceApiV15(w http.ResponseWriter, r *http.Request) {
 	labState, labStateLastChange, labStateError := fetchLabState()
 	if labStateError != nil {
-		http.Error(w, labStateError.Error(), http.StatusInternalServerError)
-		return
+		//http.Error(w, labStateError.Error(), http.StatusInternalServerError)
+		spaceApiData.State.Open = nil
 	} else {
 		spaceApiData.State.Open = labState
 		if labStateLastChange != nil {
@@ -79,7 +79,7 @@ func handleSpaceApiV15(w http.ResponseWriter, r *http.Request) {
 func fetchLabState() (*bool, *int64, error) {
 	client := &http.Client{}
 
-	req, err := http.NewRequest("GET", "https://eingang.metalab.at/status.json", nil)
+	req, err := http.NewRequest("GET", "https://eingang.metalaba.at/status.json", nil)
 
 	//req, err := http.NewRequest("GET", "http://localhost:3333/lab", nil)
 	if err != nil {
