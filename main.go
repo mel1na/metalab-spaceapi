@@ -79,7 +79,7 @@ func handleSpaceApiV15(w http.ResponseWriter, r *http.Request) {
 func fetchLabState() (*bool, *int64, error) {
 	client := &http.Client{}
 
-	req, err := http.NewRequest("GET", "https://eingang.metalaba.at/status.json", nil)
+	req, err := http.NewRequest("GET", "https://eingang.metalab.at/status.json", nil)
 
 	//req, err := http.NewRequest("GET", "http://localhost:3333/lab", nil)
 	if err != nil {
