@@ -53,6 +53,7 @@ type LabStatusAPIResponse struct {
 
 var previousStatus = "unknown"
 var lastChangedUnix = int64(0)
+var cachedSpaceApiResponse = spaceApiData
 
 func Pointer[T any](d T) *T {
 	return &d
@@ -62,12 +63,15 @@ func handleSpaceApiV15(w http.ResponseWriter, r *http.Request) {
 	labState, labStateLastChange, labStateError := fetchLabState()
 	if labStateError != nil {
 		//http.Error(w, labStateError.Error(), http.StatusInternalServerError)
-		spaceApiData.State.Open = nil
+		//spaceApiData.State.Open = nil
+		fmt.Printf("lab state error not nil, returning cached data\n")
+		spaceApiData = cachedSpaceApiResponse
 	} else {
 		spaceApiData.State.Open = labState
 		if labStateLastChange != nil {
 			spaceApiData.State.LastChange = *labStateLastChange
 		}
+		cachedSpaceApiResponse = spaceApiData
 	}
 	p, _ := json.Marshal(spaceApiData)
 
@@ -77,7 +81,7 @@ func handleSpaceApiV15(w http.ResponseWriter, r *http.Request) {
 }
 
 func fetchLabState() (*bool, *int64, error) {
-	client := &http.Client{}
+	client := &http.Client{Timeout: 5 * time.Second}
 
 	req, err := http.NewRequest("GET", "https://eingang.metalab.at/status.json", nil)
 
