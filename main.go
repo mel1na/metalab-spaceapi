@@ -12,10 +12,10 @@ import (
 var spaceApiData = &SpaceAPIv15{
 	APICompatibility: []string{"14", "15"},
 	Space:            "Metalab",
-	Logo:             "https://metalab.at/wiki/images/9/93/Metalab.at.svg",
+	Logo:             "https://metalab.at/static/images/logo.png",
 	URL:              "https://metalab.at",
 	Location: &Location{
-		Address:     "Verein Metalab, Rathausstraße 6, 1010 Wien, Austria",
+		Address:     "Rathausstraße 6, 1010 Vienna, Austria",
 		Lat:         48.2093723,
 		Lon:         16.356099,
 		Timezone:    "Europe/Vienna",
@@ -29,9 +29,12 @@ var spaceApiData = &SpaceAPIv15{
 		Open: nil,
 	},
 	Contact: &Contact{
-		Phone:    "+43 720 002323",
-		Mastodon: "@metalab@chaos.social",
-		SIP:      "6382",
+		Phone:     "+43 720 002323",
+		Email:     "core@metalab.at",
+		IssueMail: "core@metalab.at",
+		ML:        "metalab@lists.metalab.at",
+		Mastodon:  "@metalab@chaos.social",
+		SIP:       "6382",
 	},
 	Links: []Link{
 		{
@@ -39,9 +42,16 @@ var spaceApiData = &SpaceAPIv15{
 			URL:  "https://metalab.at/wiki",
 		},
 	},
+	Feeds: &Feeds{
+		Calendar: &Feed{
+			Type: "rss",
+			URL:  "https://metalab.at/feeds/events/",
+		},
+	},
 	Projects: []string{
 		"https://github.com/metalab",
 		"https://metalab.at/wiki/Projekte_Neu",
+		"https://metalab.at/project",
 	},
 }
 
@@ -73,7 +83,7 @@ func handleSpaceApiV15(w http.ResponseWriter, r *http.Request) {
 		}
 		cachedSpaceApiResponse = spaceApiData
 	}
-	p, _ := json.Marshal(spaceApiData)
+	p, _ := json.MarshalIndent(spaceApiData, "", "    ")
 
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
